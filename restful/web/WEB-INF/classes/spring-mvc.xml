@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:context="http://www.springframework.org/schema/context"  
+	xmlns:mvc="http://www.springframework.org/schema/mvc" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+	xsi:schemaLocation="http://www.springframework.org/schema/beans   
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd   
+	http://www.springframework.org/schema/context   
+	http://www.springframework.org/schema/context/spring-context-4.0.xsd   
+	http://www.springframework.org/schema/mvc   
+	http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd"> 
+	
+	
+	<context:annotation-config/>
+	<!--mysql	
+	<bean id="dataSourceLocal" name="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="org.mariadb.jdbc.Driver" /> 
+		<property name="url" value="jdbc:mariadb://10.202.10.135:3306/db_dev" />
+		<property name="username" value="itsp_dev"/>
+		<property name="password" value="asdfghjkl"/>
+		<property name="maxActive" value="10"/>
+		<property name="maxIdle" value="5"/>
+		<property name="maxWait" value="10000"/>
+	</bean>-->
+	<!--oracle-->
+		<bean id="dataSourceLocal" name="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+			<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" /> 
+			<property name="url" value="jdbc:oracle:thin:@10.202.6.63:1521:oradev" />
+			<property name="username" value="sfmap_dev"/>
+			<property name="password" value="sfpwd12345#"/>
+			<property name="maxActive" value="10"/>
+			<property name="maxIdle" value="5"/>
+			<property name="maxWait" value="10000"/>
+		</bean>	
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		       
+		<property name="dataSource">
+			<ref bean="dataSourceLocal" />
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.OracleDialect</prop>
+				<!--<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>-->
+				<prop key="hibernate.show_sql">true</prop>
+			</props>
+		</property>
+		<property name="packagesToScan">
+			<list>
+				<value>com.itsp.*</value>
+				<value>org.xdemo.example.*</value>
+			</list>
+		</property>
+	</bean>	
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>   
+	
+	
+	
+	<!-- 防止@ResponseBody中文乱码 -->
+	<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<bean
+					class="org.springframework.http.converter.StringHttpMessageConverter">
+					<property name="supportedMediaTypes">
+						<list>
+							<bean class="org.springframework.http.MediaType">
+								<constructor-arg index="0" value="text" />
+								<constructor-arg index="1" value="plain" />
+								<constructor-arg index="2" value="UTF-8" />
+							</bean>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+	<!-- 启用MVC注解 -->
+	<mvc:annotation-driven />
+	<!-- 静态资源文件，不会被Spring MVC拦截 -->
+	<mvc:resources location="/resources/" mapping="/resources/**"/>
+	<bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">  
+		<property name="order" value="1" />  
+		<property name="favorParameter" value="false" />  
+		<property name="ignoreAcceptHeader" value="true" />  
+  
+		<property name="defaultContentType" value="text/html" />  
+		<property name="mediaTypes">  
+			<map>  
+				<entry key="json" value="application/json" />  
+				<entry key="xml" value="application/xml" />  
+			</map>  
+		</property>  
+		<property name="viewResolvers">  
+			<list>  
+				<bean  
+					class="org.springframework.web.servlet.view.BeanNameViewResolver" />  
+				<bean  
+					class="org.springframework.web.servlet.view.InternalResourceViewResolver">  
+					<property name="prefix" value="/WEB-INF/views/" />  
+					<property name="suffix" value=".jsp" />  
+				</bean>  
+			</list>  
+		</property>  
+		<property name="defaultViews">  
+			<list>  
+				<bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" />  
+				<bean id="xmlView" class="org.springframework.web.servlet.view.xml.MarshallingView">  
+					<property name="marshaller">  
+						<bean class="org.springframework.oxm.xstream.XStreamMarshaller">  
+							<property name="autodetectAnnotations" value="true" />							
+						</bean>  
+					</property>  
+				</bean>  
+			</list>  
+		</property>  
+	</bean>      
+	<mvc:default-servlet-handler/>
+	<context:component-scan base-package="com.itsp.*"/>
+	<context:component-scan base-package="org.xdemo.example.*"/>
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
