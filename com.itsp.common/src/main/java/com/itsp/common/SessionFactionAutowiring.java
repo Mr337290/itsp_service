@@ -23,7 +23,6 @@ public class SessionFactionAutowiring  implements BeanPostProcessor{
 		
 		if ((bean instanceof HibernateDaoSupport) && (((HibernateDaoSupport)bean).getSessionFactory() == null))
 		{
-			System.out.println("");
 			((HibernateDaoSupport)bean).setSessionFactory(this.sessionFactory);
 		}
 		return bean;

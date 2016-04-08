@@ -7,7 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "carrier_order")
+@Table(name = "carrier_order_matcher")
 public class OrderMatcher {
 	@Id
 	@GeneratedValue

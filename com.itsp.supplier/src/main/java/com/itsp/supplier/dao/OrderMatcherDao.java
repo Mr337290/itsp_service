@@ -1,8 +1,11 @@
 package com.itsp.supplier.dao;
 
-import com.itsp.common.dao.BaseDao;
-import com.itsp.supplier.entity.Order;
+import org.springframework.stereotype.Component;
 
-public class OrderMatcherDao  extends BaseDao<Order>{
+import com.itsp.common.dao.BaseDao;
+import com.itsp.supplier.entity.OrderMatcher;
+
+@Component
+public class OrderMatcherDao  extends BaseDao<OrderMatcher>{
 
 }

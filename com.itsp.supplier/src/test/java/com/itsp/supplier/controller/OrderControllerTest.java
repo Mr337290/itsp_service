@@ -3,6 +3,7 @@ package com.itsp.supplier.controller;
 import static junit.framework.Assert.assertEquals;
 
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -14,14 +15,19 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.itsp.common.ItspJUnit4ClassRunner;
-import com.itsp.common.dao.JdbcDao;
+import com.itsp.common.util.DateUtil;
+import com.itsp.supplier.dao.OrderDao;
+import com.itsp.supplier.dao.OrderMatcherDao;
 import com.itsp.supplier.entity.Order;
+import com.itsp.supplier.entity.OrderMatcher;
 
 public class OrderControllerTest extends ItspJUnit4ClassRunner {
 	@Autowired
 	private OrderController orderController;
 	@Autowired
-	private JdbcDao jdbcDao;
+	private OrderDao orderDao;
+	@Autowired
+	private OrderMatcherDao orderMatcherDao;
 
 	@Test
 	public void getOrders_IS_MAP() {
@@ -36,44 +42,60 @@ public class OrderControllerTest extends ItspJUnit4ClassRunner {
 	}
 
 	@Test
-    @Transactional
-    @Rollback
+	@Transactional
+	@Rollback
 	public void should_get_order() {
+
 		// given
-		genergateOrder("1", "2", "1", 1, 6, "'755M'", "'755N'");
-		genergateOrder("2", "1", "2", 2, 12, "'755A'", "'755C'");
-		
+		Order newOrder1 = new Order();
+		newOrder1.setCreateTime(new Date());
+		newOrder1.setOrigin("020A");
+		newOrder1.setTarget("020B");
+		createOrder(newOrder1);
+
+		Order newOrder2 = new Order();
+		newOrder2.setCreateTime(new Date());
+		newOrder2.setEndDate(new Date());
+		newOrder2.setStartDate(new Date());
+		newOrder2.setOrigin("020C");
+		newOrder2.setTarget("020D");
+		createOrder(newOrder2);
+
+		OrderMatcher orderMatcher = new OrderMatcher();
+
+		orderMatcher.setCarrierId(1L);
+		orderMatcher.setOrderId(newOrder2.getId());
+
+		cretaeOrderMatcher(orderMatcher);
+
 		// when
-		List<Order> orders = orderController.getOrders(1L);
+		List<Order> orders = orderController.getOrders(orderMatcher
+				.getCarrierId());
 		Order order = orders.get(0);
-		
+
 		// then
-		assertEquals(1, orders.size());
-		assertEquals("755M", order.getOrigin());
-		assertEquals("755N", order.getTarget());
-//		assertEquals("", order.getCreateTime());
-//		assertEquals("", order.getStartDate());
-//		assertEquals("", order.getEndDate());
-		assertEquals(6, order.getVehicleAge());
-		assertEquals(1, order.getVehicleType());
+		assertEquals("size", 1, orders.size());
+		assertEquals("Origin", newOrder2.getOrigin(), order.getOrigin());
+		assertEquals("Target", newOrder2.getTarget(), order.getTarget());
+		assertEquals("CreateTime", DateUtil.string(newOrder2.getCreateTime(),
+				DateUtil.YYYY_MM_DD_HH_MM_SS), DateUtil.string(
+				order.getCreateTime(), DateUtil.YYYY_MM_DD_HH_MM_SS));
+		assertEquals("StartDate", DateUtil.string(newOrder2.getStartDate(),
+				DateUtil.YYYY_MM_DD_HH_MM_SS), DateUtil.string(
+				order.getStartDate(), DateUtil.YYYY_MM_DD_HH_MM_SS));
+		assertEquals("EndDate", DateUtil.string(newOrder2.getEndDate(),
+				DateUtil.YYYY_MM_DD_HH_MM_SS), DateUtil.string(
+				order.getEndDate(), DateUtil.YYYY_MM_DD_HH_MM_SS));
+		assertEquals("VehicleAge", newOrder2.getVehicleAge(),
+				order.getVehicleAge());
+		assertEquals("VehicleType", newOrder2.getVehicleType(),
+				order.getVehicleType());
 	}
 
-	private void genergateOrder(String matcherId, String orderId, String carrierId, int vehicleType, int vehicleAge, String origin, String target) {
-		createOrderMatcher(matcherId, carrierId, orderId);
-		
-		createOrder(orderId, origin, target, String.valueOf(vehicleType), String.valueOf(vehicleAge));
+	public void createOrder(Order order) {
+		orderDao.save(order);
 	}
-	
-	private void createOrderMatcher(String... values) {
-		String sqlForOrderMatcherGeneration = "insert into carrier_order_matcher(id,carrier_id,order_id) values(%s,%s,%s)";
-		
-		jdbcDao.getJdbcTemplate().execute(String.format(sqlForOrderMatcherGeneration, values[0], values[1], values[2]));
-	}
-	
-	private void createOrder(String...values) {
-		String sqlForOrderGeneration = "insert into carrier_order(id,end_date,create_time,start_date,origin,target,vehicle_type,vehicle_age) "
-			+ "values(%s,%s,%s,%s,%s,%s,%s,%s)";
-		jdbcDao.getJdbcTemplate().execute(String.format(sqlForOrderGeneration, values[0], 
-				"CURRENT_DATE()", "CURRENT_DATE()", "CURRENT_DATE()", values[1], values[2], values[3], values[4]));
+	public void cretaeOrderMatcher(OrderMatcher orderMatcher) {
+		orderMatcherDao.save(orderMatcher);
 	}
 }
