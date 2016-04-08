@@ -47,26 +47,17 @@ public class OrderControllerTest extends ItspJUnit4ClassRunner {
 	public void should_get_order() {
 
 		// given
-		Order newOrder1 = new Order();
-		newOrder1.setCreateTime(new Date());
-		newOrder1.setOrigin("020A");
-		newOrder1.setTarget("020B");
-		createOrder(newOrder1);
+		createOrder(DateUtil.autoFormat("2016-04-07 15:28:00"),
+				DateUtil.autoFormat("2016-04-07 15:29:00"),
+				DateUtil.autoFormat("2016-04-07 15:30:00"), "020A", "020B", 1,
+				10);
 
-		Order newOrder2 = new Order();
-		newOrder2.setCreateTime(new Date());
-		newOrder2.setEndDate(new Date());
-		newOrder2.setStartDate(new Date());
-		newOrder2.setOrigin("020C");
-		newOrder2.setTarget("020D");
-		createOrder(newOrder2);
+		Order order2 = createOrder(DateUtil.autoFormat("2016-04-08 15:28:00"),
+				DateUtil.autoFormat("2016-04-08 15:29:00"),
+				DateUtil.autoFormat("2016-04-08 15:30:00"), "020C", "020D", 2,
+				12);
 
-		OrderMatcher orderMatcher = new OrderMatcher();
-
-		orderMatcher.setCarrierId(1L);
-		orderMatcher.setOrderId(newOrder2.getId());
-
-		cretaeOrderMatcher(orderMatcher);
+		OrderMatcher orderMatcher = cretaeOrderMatcher(1L, order2.getId());
 
 		// when
 		List<Order> orders = orderController.getOrders(orderMatcher
@@ -75,27 +66,37 @@ public class OrderControllerTest extends ItspJUnit4ClassRunner {
 
 		// then
 		assertEquals("size", 1, orders.size());
-		assertEquals("Origin", newOrder2.getOrigin(), order.getOrigin());
-		assertEquals("Target", newOrder2.getTarget(), order.getTarget());
-		assertEquals("CreateTime", DateUtil.string(newOrder2.getCreateTime(),
-				DateUtil.YYYY_MM_DD_HH_MM_SS), DateUtil.string(
+		assertEquals("Origin", "020C", order.getOrigin());
+		assertEquals("Target", "020D", order.getTarget());
+		assertEquals("CreateTime", "2016-04-08 15:28:00", DateUtil.string(
 				order.getCreateTime(), DateUtil.YYYY_MM_DD_HH_MM_SS));
-		assertEquals("StartDate", DateUtil.string(newOrder2.getStartDate(),
-				DateUtil.YYYY_MM_DD_HH_MM_SS), DateUtil.string(
+		assertEquals("StartDate", "2016-04-08 15:30:00", DateUtil.string(
 				order.getStartDate(), DateUtil.YYYY_MM_DD_HH_MM_SS));
-		assertEquals("EndDate", DateUtil.string(newOrder2.getEndDate(),
-				DateUtil.YYYY_MM_DD_HH_MM_SS), DateUtil.string(
+		assertEquals("EndDate", "2016-04-08 15:29:00", DateUtil.string(
 				order.getEndDate(), DateUtil.YYYY_MM_DD_HH_MM_SS));
-		assertEquals("VehicleAge", newOrder2.getVehicleAge(),
-				order.getVehicleAge());
-		assertEquals("VehicleType", newOrder2.getVehicleType(),
-				order.getVehicleType());
+		assertEquals("VehicleAge", 2, order.getVehicleAge());
+		assertEquals("VehicleType", 12, order.getVehicleType());
 	}
 
-	public void createOrder(Order order) {
+	public Order createOrder(Date createTime, Date endDate, Date startDate,
+			String origin, String target, int vehicleAge, int vehicleType) {
+		Order order = new Order();
+		order.setCreateTime(createTime);
+		order.setEndDate(endDate);
+		order.setStartDate(startDate);
+		order.setOrigin(origin);
+		order.setTarget(target);
+		order.setVehicleAge(vehicleAge);
+		order.setVehicleType(vehicleType);
 		orderDao.save(order);
+		return order;
 	}
-	public void cretaeOrderMatcher(OrderMatcher orderMatcher) {
+
+	public OrderMatcher cretaeOrderMatcher(Long carrierId, Long orderId) {
+		OrderMatcher orderMatcher = new OrderMatcher();
+		orderMatcher.setCarrierId(carrierId);
+		orderMatcher.setOrderId(orderId);
 		orderMatcherDao.save(orderMatcher);
+		return orderMatcher;
 	}
 }
