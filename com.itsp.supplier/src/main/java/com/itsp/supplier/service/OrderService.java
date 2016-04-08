@@ -9,7 +9,7 @@ import com.itsp.supplier.dao.OrderDao;
 import com.itsp.supplier.entity.Order;
 
 @Component
-public class SupplierService {
+public class OrderService {
 	@Autowired
 	private OrderDao supplierDao;
 

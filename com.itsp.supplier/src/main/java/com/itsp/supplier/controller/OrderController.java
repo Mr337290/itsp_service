@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.itsp.supplier.entity.Order;
-import com.itsp.supplier.service.SupplierService;
+import com.itsp.supplier.service.OrderService;
 
 @Controller
 @RequestMapping("/order")
 public class OrderController {
 	@Autowired
-	private SupplierService supplierService; 
+	private OrderService supplierService; 
 	
 	@RequestMapping(value = "/{id}")
 	public List<Order>getOrders(@PathVariable("id") Long id) {
